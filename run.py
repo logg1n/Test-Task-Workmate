@@ -1,4 +1,5 @@
 import argparse
+import logging
 from typing import Tuple, List
 
 from tabulate import tabulate
@@ -19,8 +20,8 @@ def get_args_command_line() -> Tuple[List[str], str]:
     )
     parser.add_argument(
         "--reports",
-        default="performance",
-        help="Название отчета (по умолчанию: performance)",
+        required=True,
+        help="Название отчета задает параметры выборки(Регистрозависимый параметр)",
     )
 
     args = parser.parse_args()
@@ -30,20 +31,21 @@ def get_args_command_line() -> Tuple[List[str], str]:
 
 def main() -> None:
     files, report = get_args_command_line()
-    columns = ["position", "performance"]
-    table = analysis_of_developer_performance(
-        files,
-        lambda t: Reports.count_average(t, "performance"),
-        lambda t: Reports.sort_by_column(t, "performance"),
-        keys=columns,
-    )
 
-    rows = table.get_rows()
-    print("*" * len(f"* report: {report} *"))
-    print(f"* report: {report} *")
-    print("*" * len(f"* report: {report} *"))
-    print(tabulate(rows[1:], headers=rows[0], floatfmt=".2f"))
+    config = Reports.registry.get(report)
+    if not config:
+        raise ValueError(f"Неизвестный отчёт: {report}")
+
+    table = analysis_of_developer_performance(files, keys=config["columns"])
+
+    for cb in config["callbacks"]:
+        table = cb(table)
+
+    print(tabulate(table.get_rows()[1:], headers=table.get_rows()[0], floatfmt=".2f"))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logging.exception("Ошибка выполнения программы")
