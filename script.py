@@ -4,10 +4,8 @@ import re
 from table import Table
 
 
-def analysis_of_developer_performance(files, *callbacks, keys=None):
-
+def analysis_of_developer_performance(files, keys=None):
     pattern = re.compile(r"^-?\d+(?:\.\d+)?$")
-
     table = None
 
     for file in files:
@@ -15,26 +13,24 @@ def analysis_of_developer_performance(files, *callbacks, keys=None):
             reader = csv.reader(f)
             headers = next(reader)
 
-            valid_keys = [k for k in (keys or []) if k in headers]
+            if not keys:
+                valid_keys = headers
+            else:
+                valid_keys = [k for k in keys if k in headers]
 
             if table is None:
                 table = Table(valid_keys)
 
             indexes = [headers.index(v) for v in valid_keys]
 
+            if not indexes:
+                continue
+
             for row in reader:
-                if valid_keys:
-                    values = [
-                        float(v) if pattern.match(v) else v
-                        for v in (row[i] for i in indexes)
-                    ]
-                    table.add_row(values)
+                values = [
+                    float(v) if pattern.match(v) else v
+                    for v in (row[i] for i in indexes)
+                ]
+                table.add_row(values)
 
-    if table is None:
-        return None
-
-    result = table
-    for c in callbacks or ():
-        result = c(result)
-
-    return result
+    return table
