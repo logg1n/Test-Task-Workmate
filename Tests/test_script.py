@@ -1,65 +1,83 @@
-import pytest
 import tempfile
 import csv
+import pytest
+
 from script import analysis_of_developer_performance
+from table import Table
 
 
 def create_csv_file(headers, rows):
-    tmp = tempfile.NamedTemporaryFile(
+    with tempfile.NamedTemporaryFile(
         mode="w+", newline="", delete=False, encoding="utf-8"
-    )
-    writer = csv.writer(tmp)
-    writer.writerow(headers)
-    writer.writerows(rows)
-    tmp.flush()
+    ) as tmp:
+        writer = csv.writer(tmp)
+        writer.writerow(headers)
+        writer.writerows(rows)
+        tmp.flush()
     return tmp.name
 
 
 def test_analysis_basic():
     file = create_csv_file(
-        ["Position", "Performance"],
+        ["position", "performance"],
         [["Backend Developer", "4.8"], ["QA Engineer", "4.5"]],
     )
-    table = analysis_of_developer_performance([file], keys=["Position", "Performance"])
+    table = analysis_of_developer_performance([file], keys=["position", "performance"])
     assert table.get_rows() == [
-        ["Position", "Performance"],
-        ("Backend Developer", [4.8]),
-        ("QA Engineer", [4.5]),
+        ["position", "performance"],
+        ["Backend Developer", 4.8],
+        ["QA Engineer", 4.5],
     ]
 
 
 def test_analysis_no_keys():
-    file = create_csv_file(["Position", "Performance"], [["Backend Developer", "4.8"]])
+    file = create_csv_file(["position", "performance"], [["Backend Developer", "4.8"]])
     table = analysis_of_developer_performance([file], keys=["Salary"])
-    assert table.matrix == []
+    # таблица создаётся с пустыми заголовками
+    assert table.get_rows() == [[]]
 
 
 def test_analysis_multiple_files():
-    file1 = create_csv_file(["Position", "Performance"], [["Backend Developer", "4.8"]])
-    file2 = create_csv_file(["Position", "Performance"], [["QA Engineer", "4.5"]])
+    file1 = create_csv_file(["position", "performance"], [["Backend Developer", "4.8"]])
+    file2 = create_csv_file(["position", "performance"], [["QA Engineer", "4.5"]])
     table = analysis_of_developer_performance(
-        [file1, file2], keys=["Position", "Performance"]
+        [file1, file2], keys=["position", "performance"]
     )
     rows = table.get_rows()
-    assert len(rows) == 3  # заголовки + 2 строки
+    assert rows == [
+        ["position", "performance"],
+        ["Backend Developer", 4.8],
+        ["QA Engineer", 4.5],
+    ]
 
 
 def test_analysis_empty_files():
-    table = analysis_of_developer_performance([], keys=["Position", "Performance"])
+    table = analysis_of_developer_performance([], keys=["position", "performance"])
     assert table is None
 
 
-def test_analysis_with_callback():
+def test_analysis_with_numeric_and_text():
     file = create_csv_file(
-        ["Position", "Performance"],
-        [["Backend Developer", "4.8"], ["QA Engineer", "4.5"]],
+        ["position", "performance", "Level"],
+        [["Backend Developer", "4.8", "Senior"], ["QA Engineer", "4.5", "Junior"]],
     )
     table = analysis_of_developer_performance(
-        [file], lambda t: t, keys=["Position", "Performance"]
+        [file], keys=["position", "performance", "Level"]
     )
-    # Проверяем, что callback отработал и таблица осталась корректной
     assert table.get_rows() == [
-        ["Position", "Performance"],
-        ("Backend Developer", [4.8]),
-        ("QA Engineer", [4.5]),
+        ["position", "performance", "Level"],
+        ["Backend Developer", 4.8, "Senior"],
+        ["QA Engineer", 4.5, "Junior"],
+    ]
+
+
+def test_analysis_without_keys():
+    file = create_csv_file(
+        ["position", "performance"],
+        [["Backend Developer", "4.8"]],
+    )
+    table = analysis_of_developer_performance([file])  # keys=None
+    assert table.get_rows() == [
+        ["position", "performance"],
+        ["Backend Developer", 4.8],
     ]

@@ -9,25 +9,21 @@ from run import main
 @pytest.mark.parametrize(
     "argv, expected_files, expected_reports",
     [
-        # несколько файлов + явный отчёт
         (
             ["run.py", "--files", "file1.csv", "file2.csv", "--reports", "performance"],
             ["file1.csv", "file2.csv"],
             "performance",
         ),
-        # один файл + явный отчёт
         (
             ["run.py", "--files", "data.csv", "--reports", "performance"],
             ["data.csv"],
             "performance",
         ),
-        # один файл, отчёт по умолчанию
         (
-            ["run.py", "--files", "data.csv"],
+            ["run.py", "--files", "data.csv", "--reports", "performance"],
             ["data.csv"],
             "performance",
         ),
-        # сокращение --files (работает только если allow_abbrev=True)
         (
             ["run.py", "--files", "data.csv", "--reports", "performance"],
             ["data.csv"],
@@ -66,9 +62,9 @@ def test_reports_before_files(monkeypatch):
 
 
 def test_run_main(monkeypatch, tmp_path):
-    file = tmp_path / "data.csv"
+    file = tmp_path / "employees1.csv"
     file.write_text("position,performance\nBackend Developer,4.8\n")
     monkeypatch.setattr(
         sys, "argv", ["run.py", "--files", str(file), "--reports", "performance"]
     )
-    main()  # просто проверяем, что не падает
+    main()

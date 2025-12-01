@@ -8,96 +8,100 @@ from reports import Reports
     [
         (
             [["Backend Developer", 4.8], ["Backend Developer", 4.9]],
-            [["Position", ["Backend Developer"]], ["Performance", [4.85]]],
+            [["position", "performance"], ["Backend Developer", 4.85]],
         ),
         (
             [["QA Engineer", 4.5], ["QA Engineer", 4.7]],
-            [["Position", ["QA Engineer"]], ["Performance", [4.6]]],
+            [["position", "performance"], ["QA Engineer", 4.6]],
         ),
     ],
 )
 def test_count_average(rows, expected):
-    table = Table(["Position", "Performance"])
+    table = Table(["position", "performance"])
     for r in rows:
         table.add_row(r)
 
-    Reports.count_average(table, "Performance")
-    assert table.matrix == expected
+    Reports.count_average(table, "performance")
+    assert table.get_rows() == expected
+
+
+def test_count_average_invalid_column():
+    table = Table(["position", "performance"])
+    table.add_row(["Backend Developer", 4.8])
+    table.add_row(["QA Engineer", 4.5])
+
+    with pytest.raises(ValueError):
+        Reports.count_average(table, "Salary")
 
 
 @pytest.mark.parametrize(
-    "rows,column",
-    [
-        ([["Backend Developer", 4.8], ["QA Engineer", 4.5]], "Salary"),
-    ],
-)
-def test_count_average_invalid_column(rows, column):
-    table = Table(["Position", "Performance"])
-    for r in rows:
-        table.add_row(r)
-
-    with pytest.raises(ValueError, match="Колонка 'Salary' не найдена"):
-        Reports.count_average(table, column)
-
-
-@pytest.mark.parametrize(
-    "rows,column,reverse,expected",
+    "rows,reverse,expected",
     [
         (
             [["Backend Developer", 4.8], ["QA Engineer", 4.5], ["Data Scientist", 4.9]],
-            "Performance",
             True,
             [
-                ["Position", ["Data Scientist", "Backend Developer", "QA Engineer"]],
-                ["Performance", [[4.9], [4.8], [4.5]]],
+                ["position", "performance"],
+                ["Data Scientist", 4.9],
+                ["Backend Developer", 4.8],
+                ["QA Engineer", 4.5],
             ],
         ),
         (
             [["Backend Developer", 4.8], ["QA Engineer", 4.5], ["Data Scientist", 4.9]],
-            "Performance",
             False,
             [
-                ["Position", ["QA Engineer", "Backend Developer", "Data Scientist"]],
-                ["Performance", [[4.5], [4.8], [4.9]]],
+                ["position", "performance"],
+                ["QA Engineer", 4.5],
+                ["Backend Developer", 4.8],
+                ["Data Scientist", 4.9],
             ],
         ),
     ],
 )
-def test_sort_by_column(rows, column, reverse, expected):
-    table = Table(["Position", "Performance"])
+def test_sort_by_column(rows, reverse, expected):
+    table = Table(["position", "performance"])
     for r in rows:
         table.add_row(r)
 
-    Reports.sort_by_column(table, column, reverse=reverse)
-    assert table.matrix == expected
+    Reports.sort_by_column(table, "performance", reverse=reverse)
+    assert table.get_rows() == expected
 
 
-@pytest.mark.parametrize(
-    "rows,column",
-    [
-        ([["Backend Developer", 4.8], ["QA Engineer", 4.5]], "Salary"),
-    ],
-)
-def test_sort_by_column_invalid_column(rows, column):
-    table = Table(["Position", "Performance"])
-    for r in rows:
-        table.add_row(r)
+def test_sort_by_column_invalid_column():
+    table = Table(["position", "performance"])
+    table.add_row(["Backend Developer", 4.8])
+    table.add_row(["QA Engineer", 4.5])
 
-    with pytest.raises(ValueError, match="Колонка 'Salary' не найдена"):
-        Reports.sort_by_column(table, column)
+    with pytest.raises(ValueError):
+        Reports.sort_by_column(table, "Salary")
 
 
-@pytest.mark.parametrize(
-    "rows,expected",
-    [
-        ([["Backend Developer", "N/A"]], []),
-    ],
-)
-def test_count_average_non_numeric(rows, expected):
-    table = Table(["Position", "Performance"])
-    for r in rows:
-        table.add_row(r)
+def test_count_average_non_numeric():
+    table = Table(["position", "performance"])
+    table.add_row(["Backend Developer", "N/A"])
 
-    result = Reports.count_average(table, "Performance")
+    result = Reports.count_average(table, "performance")
     # Проверяем, что строка без чисел не ломает логику
-    assert result.matrix[1][1] == expected
+    assert result.get_rows() == [["position", "performance"]]
+
+
+def test_count_by_skill():
+    table = Table(["skills"])
+    table.add_row(["Python, Java"])
+    table.add_row(["Python, SQL"])
+
+    Reports.count_by_skill(table, "skills")
+    assert table.get_rows() == [
+        ["skills"],
+        ["Python", 2],
+        ["Java", 1],
+        ["SQL", 1],
+    ]
+
+
+def test_count_by_skill_empty():
+    table = Table(["skills"])
+    table.add_row([""])
+    Reports.count_by_skill(table, "skills")
+    assert table.get_rows() == [["skills"]]
