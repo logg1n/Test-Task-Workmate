@@ -1,59 +1,78 @@
+from collections import Counter
+
+
 class Reports:
-
     @staticmethod
-    def count_average(table, column_name: str):
+    def count_average(
+        table, column_name: str = "performance", group_by: str = "position"
+    ):
         """Посчитать среднее значение по колонке для каждой уникальной позиции"""
-        headers = [col[0] for col in table.matrix]
+        headers = table.get_rows()[0]
 
-        if column_name not in headers:
-            raise ValueError(f"Колонка '{column_name}' не найдена")
+        idx_group = headers.index(group_by)
+        idx_value = headers.index(column_name)
 
-        idx = headers.index(column_name)
-
-        rows = table.get_rows()[1:]  # все строки без заголовков
         result = {}
+        for row in table.get_rows()[1:]:
+            key = row[idx_group]
+            val = row[idx_value]
+            if isinstance(val, (int, float)):
+                result.setdefault(key, []).append(val)
 
-        for row in rows:
-            key = row[0]
-            val = row[idx]
-            if isinstance(val, list):
-                vals = [x for x in val if isinstance(x, (int, float))]
-            elif isinstance(val, (int, float)):
-                vals = [val]
-            else:
-                vals = []
-
-            if vals:
-                result.setdefault(key, []).extend(vals)
-
-        table.matrix[idx][1] = [
-            round(sum(vals) / len(vals), 2) for key, vals in result.items()
+        new_rows = [
+            [key, round(sum(vals) / len(vals), 2)] for key, vals in result.items()
         ]
 
-        # первая колонка остаётся только с уникальными ключами
-        table.matrix[0][1] = list(result.keys())
-
+        table.replace([group_by, column_name], new_rows)
         return table
 
     @staticmethod
-    def sort_by_column(table, column_name: str, reverse: bool = True):
+    def sort_by_column(table, column_name: str = "performance", reverse: bool = True):
         """Отсортировать таблицу по указанной колонке (in-place)"""
-        rows = table.get_rows()
-        if not rows:
-            return table
 
-        headers, data_rows = rows[0], rows[1:]
-
-        if column_name not in headers:
-            raise ValueError(f"Колонка '{column_name}' не найдена")
+        headers = table.get_rows()[0]
 
         idx = headers.index(column_name)
+        sorted_rows = sorted(
+            table.get_rows()[1:], key=lambda r: r[idx], reverse=reverse
+        )
 
-        # сортируем все строки целиком по значению в нужной колонке
-        sorted_rows = sorted(data_rows, key=lambda r: r[idx], reverse=reverse)
+        table.replace(headers, sorted_rows)
+        return table
 
-        # очищаем старые значения и заполняем заново
-        for i, _ in enumerate(headers):
-            table.matrix[i][1] = [row[i] for row in sorted_rows]
+    @staticmethod
+    def count_by_skill(table, column_name: str = "skills"):
+        """Посчитать количество сотрудников по каждому навыку"""
+
+        headers = table.get_rows()[0]
+        idx = headers.index(column_name)
+
+        # собираем все навыки в один список
+        all_skills = []
+        for row in table.get_rows()[1:]:  # берём строки без заголовков
+            skills = row[idx]
+            if isinstance(skills, str):
+                for s in skills.split(","):
+                    s = s.strip()
+                    if s:  # ✅ пропускаем пустые строки
+                        all_skills.append(s)
+
+        # считаем количество уникальных навыков
+        skill_counts = Counter(all_skills)
+
+        # формируем новые строки
+        new_rows = [[skill, count] for skill, count in skill_counts.items()]
+        table.replace([column_name], new_rows)
 
         return table
+
+    registry = {
+        "performance": {
+            "columns": ["position", "performance"],
+            "callbacks": [count_average, sort_by_column],
+        },
+        "skills": {
+            "columns": ["skills"],
+            "callbacks": [count_by_skill],
+        },
+    }
