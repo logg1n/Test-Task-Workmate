@@ -82,3 +82,29 @@ def test_get_rows():
         ("Backend Developer", [4.8]),
         ("QA Engineer", [4.5]),
     ]
+
+
+# --- Дополнительные тесты для полного покрытия --- #
+
+
+def test_add_row_multiple_columns():
+    table = Table(["Position", "Performance", "Level"])
+    table.add_row(["Backend Developer", 4.8, "Senior"])
+    assert table.matrix == [
+        ["Position", ["Backend Developer"]],
+        ["Performance", [[4.8]]],
+        ["Level", [["Senior"]]],
+    ]
+
+
+def test_get_rows_empty_table():
+    table = Table(["Position", "Performance"])
+    rows = table.get_rows()
+    # только заголовки, без данных
+    assert rows == [["Position", "Performance"]]
+
+
+def test_add_column_without_values():
+    table = Table(["Position"])
+    table.add_column("Performance")
+    assert table.matrix == [["Position", []], ["Performance", []]]

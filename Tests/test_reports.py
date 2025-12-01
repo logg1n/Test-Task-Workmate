@@ -25,11 +25,19 @@ def test_count_average(rows, expected):
     assert table.matrix == expected
 
 
-def test_count_average_invalid_column():
+@pytest.mark.parametrize(
+    "rows,column",
+    [
+        ([["Backend Developer", 4.8], ["QA Engineer", 4.5]], "Salary"),
+    ],
+)
+def test_count_average_invalid_column(rows, column):
     table = Table(["Position", "Performance"])
-    table.add_row(["Backend Developer", 4.8])
-    with pytest.raises(ValueError):
-        Reports.count_average(table, "Salary")
+    for r in rows:
+        table.add_row(r)
+
+    with pytest.raises(ValueError, match="Колонка 'Salary' не найдена"):
+        Reports.count_average(table, column)
 
 
 @pytest.mark.parametrize(
@@ -64,8 +72,32 @@ def test_sort_by_column(rows, column, reverse, expected):
     assert table.matrix == expected
 
 
-def test_sort_by_column_invalid_column():
+@pytest.mark.parametrize(
+    "rows,column",
+    [
+        ([["Backend Developer", 4.8], ["QA Engineer", 4.5]], "Salary"),
+    ],
+)
+def test_sort_by_column_invalid_column(rows, column):
     table = Table(["Position", "Performance"])
-    table.add_row(["Backend Developer", 4.8])
-    with pytest.raises(ValueError):
-        Reports.sort_by_column(table, "Salary")
+    for r in rows:
+        table.add_row(r)
+
+    with pytest.raises(ValueError, match="Колонка 'Salary' не найдена"):
+        Reports.sort_by_column(table, column)
+
+
+@pytest.mark.parametrize(
+    "rows,expected",
+    [
+        ([["Backend Developer", "N/A"]], []),
+    ],
+)
+def test_count_average_non_numeric(rows, expected):
+    table = Table(["Position", "Performance"])
+    for r in rows:
+        table.add_row(r)
+
+    result = Reports.count_average(table, "Performance")
+    # Проверяем, что строка без чисел не ломает логику
+    assert result.matrix[1][1] == expected

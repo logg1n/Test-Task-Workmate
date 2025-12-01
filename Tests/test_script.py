@@ -47,3 +47,19 @@ def test_analysis_multiple_files():
 def test_analysis_empty_files():
     table = analysis_of_developer_performance([], keys=["Position", "Performance"])
     assert table is None
+
+
+def test_analysis_with_callback():
+    file = create_csv_file(
+        ["Position", "Performance"],
+        [["Backend Developer", "4.8"], ["QA Engineer", "4.5"]],
+    )
+    table = analysis_of_developer_performance(
+        [file], lambda t: t, keys=["Position", "Performance"]
+    )
+    # Проверяем, что callback отработал и таблица осталась корректной
+    assert table.get_rows() == [
+        ["Position", "Performance"],
+        ("Backend Developer", [4.8]),
+        ("QA Engineer", [4.5]),
+    ]

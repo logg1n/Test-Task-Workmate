@@ -3,6 +3,7 @@ import sys
 import pytest
 
 from run import get_args_command_line
+from run import main
 
 
 @pytest.mark.parametrize(
@@ -62,3 +63,12 @@ def test_reports_before_files(monkeypatch):
     files, reports = get_args_command_line()
     assert files == ["data.csv"]
     assert reports == "performance"
+
+
+def test_run_main(monkeypatch, tmp_path):
+    file = tmp_path / "data.csv"
+    file.write_text("position,performance\nBackend Developer,4.8\n")
+    monkeypatch.setattr(
+        sys, "argv", ["run.py", "--files", str(file), "--reports", "performance"]
+    )
+    main()  # просто проверяем, что не падает
