@@ -1,6 +1,6 @@
 import pytest
 from table import Table
-from reports import Reports
+from report import Reports
 
 
 @pytest.mark.parametrize(
