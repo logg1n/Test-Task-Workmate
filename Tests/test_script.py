@@ -35,6 +35,7 @@ def test_analysis_no_keys():
     table = analysis_of_developer_performance([file], keys=["Salary"])
     # таблица создаётся с пустыми заголовками
     assert table.get_rows() == [[]]
+    assert table.get_rows()[0] == []
 
 
 def test_analysis_multiple_files():
@@ -52,6 +53,7 @@ def test_analysis_multiple_files():
 
 
 def test_analysis_empty_files():
+    # если список файлов пуст → возвращается None
     table = analysis_of_developer_performance([], keys=["position", "performance"])
     assert table is None
 
@@ -80,4 +82,17 @@ def test_analysis_without_keys():
     assert table.get_rows() == [
         ["position", "performance"],
         ["Backend Developer", 4.8],
+    ]
+
+
+def test_analysis_mixed_values():
+    file = create_csv_file(
+        ["position", "performance"],
+        [["Backend Developer", "4.8"], ["QA Engineer", "N/A"]],
+    )
+    table = analysis_of_developer_performance([file], keys=["position", "performance"])
+    assert table.get_rows() == [
+        ["position", "performance"],
+        ["Backend Developer", 4.8],
+        ["QA Engineer", "N/A"],
     ]

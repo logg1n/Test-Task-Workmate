@@ -16,22 +16,26 @@ from reports import Reports
         ),
     ],
 )
-def test_count_average(rows, expected):
+def test_performance(rows, expected):
     table = Table(["position", "performance"])
     for r in rows:
         table.add_row(r)
 
-    Reports.count_average(table, "performance")
+    config = Reports.load_report("performance")
+    for cb in config["callbacks"]:
+        table = cb(table)
+
     assert table.get_rows() == expected
 
 
-def test_count_average_invalid_column():
+def test_performance_invalid_column():
     table = Table(["position", "performance"])
     table.add_row(["Backend Developer", 4.8])
     table.add_row(["QA Engineer", 4.5])
 
+    config = Reports.load_report("performance")
     with pytest.raises(ValueError):
-        Reports.count_average(table, "Salary")
+        config["callbacks"][0](table, "Salary")
 
 
 @pytest.mark.parametrize(
@@ -64,7 +68,10 @@ def test_sort_by_column(rows, reverse, expected):
     for r in rows:
         table.add_row(r)
 
-    Reports.sort_by_column(table, "performance", reverse=reverse)
+    config = Reports.load_report("performance")
+    # второй callback — сортировка
+    table = config["callbacks"][1](table, "performance", reverse=reverse)
+
     assert table.get_rows() == expected
 
 
@@ -73,17 +80,20 @@ def test_sort_by_column_invalid_column():
     table.add_row(["Backend Developer", 4.8])
     table.add_row(["QA Engineer", 4.5])
 
+    config = Reports.load_report("performance")
     with pytest.raises(ValueError):
-        Reports.sort_by_column(table, "Salary")
+        config["callbacks"][1](table, "Salary")
 
 
-def test_count_average_non_numeric():
+def test_performance_non_numeric():
     table = Table(["position", "performance"])
     table.add_row(["Backend Developer", "N/A"])
 
-    result = Reports.count_average(table, "performance")
-    # Проверяем, что строка без чисел не ломает логику
-    assert result.get_rows() == [["position", "performance"]]
+    config = Reports.load_report("performance")
+    table = config["callbacks"][0](table, "performance")
+
+    # Проверяем, что некорректные значения игнорируются
+    assert table.get_rows() == [["position", "performance"]]
 
 
 def test_count_by_skill():
@@ -91,7 +101,10 @@ def test_count_by_skill():
     table.add_row(["Python, Java"])
     table.add_row(["Python, SQL"])
 
-    Reports.count_by_skill(table, "skills")
+    config = Reports.load_report("skills")
+    table = config["callbacks"][0](table, "skills")
+
+    # ✅ оставляем оригинальный заголовок "skills"
     assert table.get_rows() == [
         ["skills"],
         ["Python", 2],
@@ -103,5 +116,9 @@ def test_count_by_skill():
 def test_count_by_skill_empty():
     table = Table(["skills"])
     table.add_row([""])
-    Reports.count_by_skill(table, "skills")
+
+    config = Reports.load_report("skills")
+    table = config["callbacks"][0](table, "skills")
+
+    # ✅ таблица остаётся с тем же заголовком
     assert table.get_rows() == [["skills"]]
