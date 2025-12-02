@@ -1,12 +1,27 @@
 import csv
 import re
-
+from typing import List, Optional
 from table import Table
 
 
-def analysis_of_developer_performance(files, keys=None):
+def analysis_of_developer_performance(
+    files: List[str], keys: Optional[List[str]] = None
+) -> Optional[Table]:
+    """
+    Загружает данные из CSV‑файлов и формирует таблицу.
+
+    Args:
+        files (list[str]): пути к CSV‑файлам с данными.
+        keys (list[str] | None): список колонок, которые нужно извлечь.
+            Если None — берутся все заголовки из файла.
+
+    Returns:
+        Table | None: объект Table с заголовками и строками,
+        либо None, если список файлов пуст.
+    """
+
     pattern = re.compile(r"^-?\d+(?:\.\d+)?$")
-    table = None
+    table: Optional[Table] = None
 
     for file in files:
         with open(file, mode="r", newline="", encoding="utf-8") as f:
