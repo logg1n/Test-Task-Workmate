@@ -85,6 +85,7 @@ D:\github\Analysis of developer performance
    - name — уникальное имя отчёта,
    - columns — список колонок, которые нужны отчёту,
    - callbacks — список функций‑обработчиков.
+5. Методы выборки оборачиваются @staticmethod
 
 Пример (Reports/skills.py):
 ```python
