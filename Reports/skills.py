@@ -1,6 +1,13 @@
+"""
+Модуль Reports.skills: отчёт для анализа навыков разработчиков.
+
+Содержит класс Skills, который определяет структуру колонок и набор
+обработчиков (callbacks) для постобработки таблицы.
+"""
+
 from collections import Counter
 from typing import Any
-from reports import Reports
+from report import Reports
 from table import Table
 
 

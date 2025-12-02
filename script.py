@@ -1,3 +1,8 @@
+"""
+Содержит функцию analysis_of_developer_performance, которая загружает данные
+из CSV‑файлов и формирует объект Table для дальнейшей обработки отчётами.
+"""
+
 import csv
 import re
 from typing import List, Optional

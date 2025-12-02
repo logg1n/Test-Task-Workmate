@@ -1,11 +1,16 @@
+"""
+CLI‑скрипт для запуска анализа производительности разработчиков.
+"""
+
 import argparse
 import logging
+import sys
 from typing import Tuple, List
 
 from tabulate import tabulate
 from script import analysis_of_developer_performance
 
-from reports import Reports
+from report import Reports
 
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -13,13 +18,12 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 def get_args_command_line() -> Tuple[List[str], str]:
     """
-    Разбирает аргументы командной строки.
+    Разобрать аргументы командной строки.
 
     Returns:
         Tuple[List[str], str]: список путей к CSV‑файлам (--files)
         и название отчёта (--reports).
     """
-
     parser = argparse.ArgumentParser(
         prog="Analysis of developer performance", allow_abbrev=False
     )
@@ -27,12 +31,12 @@ def get_args_command_line() -> Tuple[List[str], str]:
         "--files",
         required=True,
         nargs="+",
-        help="Пути к CSV-файлам с данными",
+        help="Пути к CSV‑файлам с данными",
     )
     parser.add_argument(
         "--reports",
         required=True,
-        help="Название отчета (регистрозависимый параметр)",
+        help="Название отчёта (регистрозависимый параметр)",
     )
 
     args = parser.parse_args()
@@ -40,11 +44,12 @@ def get_args_command_line() -> Tuple[List[str], str]:
 
 
 def main() -> None:
+    """Точка входа для CLI‑скрипта."""
     files, report = get_args_command_line()
 
     config = Reports.load_report(report)
 
-    logging.info(f"Запускаем отчёт: {report}")
+    logging.info("Запускаем отчёт: %s", report)
 
     table = analysis_of_developer_performance(files, keys=config["columns"])
 
@@ -55,12 +60,12 @@ def main() -> None:
     for cb in config["callbacks"]:
         table = cb(table)
 
-    print(tabulate(table.get_rows()[1:], headers=table.get_rows()[0], floatfmt=".2f"))
+    print(tabulate(table.data, headers=table.headers, floatfmt=".2f"))
 
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        logging.error(f"Ошибка: {e}")
-        exit(1)
+    except (RuntimeError, ImportError, ValueError) as e:
+        logging.error("Ошибка: %s", e)
+        sys.exit(1)

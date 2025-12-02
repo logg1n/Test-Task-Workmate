@@ -1,5 +1,9 @@
+"""
+Модуль report: базовый класс Reports для регистрации и загрузки отчётов.
+"""
+
 import importlib
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, Type
 
 
 class Reports:

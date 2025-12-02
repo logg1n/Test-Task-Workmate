@@ -1,6 +1,13 @@
+"""
+Модуль Reports.performance: отчёт для анализа производительности разработчиков.
+
+Содержит класс Performance, который определяет структуру колонок и набор
+обработчиков (callbacks) для постобработки таблицы.
+"""
+
 from typing import Any
 
-from reports import Reports
+from report import Reports
 from table import Table
 
 
