@@ -26,18 +26,14 @@ class CountBySkills:
     @staticmethod
     def count_by_skill(table: Table, column_name: str = "skills") -> Table:
         """Посчитать количество сотрудников по каждому навыку."""
-        headers: list[str] = table.headers
-        idx: int = headers.index(column_name)
 
         # собираем все навыки в один список
-        all_skills: list[str] = []
-        for row in table.data:
-            skills: Any = row[idx]
-            if isinstance(skills, str):
-                for s in skills.split(","):
-                    s = s.strip()
-                    if s:
-                        all_skills.append(s)
+        all_skills: list[str] = [
+            s.strip()
+            for skills in table["skills"] if isinstance(skills, str)
+            for s in skills.split(",")
+            if s.strip()
+        ]
 
         # считаем количество уникальных навыков
         skill_counts: Counter[str] = Counter(all_skills)

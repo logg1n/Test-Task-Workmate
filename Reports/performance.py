@@ -37,7 +37,7 @@ class Performance:
         idx_value: int = headers.index(column_name)
 
         result: dict[str, list[float]] = {}
-        for row in table.data:
+        for row in table:
             key: Any = row[idx_group]
             val: Any = row[idx_value]
             if isinstance(val, (int, float)):
