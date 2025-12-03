@@ -84,15 +84,21 @@ def test_analysis_without_keys():
         ["Backend Developer", 4.8],
     ]
 
-
 def test_analysis_mixed_values():
     file = create_csv_file(
         ["position", "performance"],
-        [["Backend Developer", "4.8"], ["QA Engineer", "N/A"]],
+        [
+            ["Backend Developer", "4"],
+            ["QA Engineer", "4.6"],
+            ["Java Developer", "N/A"]
+        ],
     )
     table = analysis_of_developer_performance([file], keys=["position", "performance"])
+    print("\n",table)
+    # ожидаем, что значения сохранятся как есть (список)
     assert table.get_rows() == [
         ["position", "performance"],
-        ["Backend Developer", 4.8],
-        ["QA Engineer", "N/A"],
+        ["Backend Developer", 4.0],
+        ["QA Engineer", 4.6],
+        ["Java Developer", "N/A"]
     ]
