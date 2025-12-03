@@ -53,9 +53,8 @@ def main() -> None:
 
     table = analysis_of_developer_performance(files, keys=config["columns"])
 
-    rows = table.get_rows()
-    if not rows or len(rows) < 2:
-        raise ValueError("Таблица пуста или содержит только заголовки.")
+    if not table:
+        raise ValueError("Таблица пуста, данные не добавлены.")
 
     for cb in config["callbacks"]:
         table = cb(table)
@@ -66,6 +65,10 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (RuntimeError, ImportError, ValueError) as e:
+    except (RuntimeError, ImportError, ValueError, TypeError) as e:
         logging.error("Ошибка: %s", e)
         sys.exit(1)
+    except Exception as e:
+        logging.exception("Непредвиденная ошибка: %s", e)
+        sys.exit(1)
+
