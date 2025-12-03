@@ -2,15 +2,15 @@
 Модуль table: универсальная обёртка для работы с табличными данными.
 """
 
-from typing import List, Any
+from typing import List, Any, Collection, Iterator, Union
 
 
-class Table:
+class Table(Collection):
     """
     Класс-обёртка для работы с табличными данными.
 
     Таблица хранится как список списков:
-    - первая строка (`rows[0]`) — заголовки колонок,
+    - первая строка (`rows[0]`) — заголовки колонок
     - все остальные строки (`rows[1:]`) — данные.
     """
 
@@ -41,3 +41,27 @@ class Table:
     def data(self) -> List[List[Any]]:
         """Вернуть все строки данных (без заголовков)."""
         return self.rows[1:]
+
+    def is_empty(self)-> bool:
+        return not self.data
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    def __contains__(self, item) -> bool:
+        return any(item in row for row in self.data)
+
+    def __iter__(self)-> Iterator[List[Any]]:
+        return iter(self.data)
+
+    def __getitem__(self, key: Union[int, str]) -> List[Any]:
+        if isinstance(key, int):
+            return self.data[key]
+        elif isinstance(key, str):
+            idx = self.headers.index(key)
+            return [row[idx] for row in self.data]
+        else:
+            raise TypeError("Ключ должен быть int или str")
+
+    def __bool__(self) -> bool:
+        return len(self.data) > 0
