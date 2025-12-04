@@ -4,7 +4,7 @@ from table import Table
 
 def test_create_table_with_columns():
     table = Table(["position", "performance"])
-    assert table.get_rows() == [["position", "performance"]]
+    assert table.headers == ["position", "performance"]
 
 
 @pytest.mark.parametrize(
@@ -45,7 +45,7 @@ def test_add_row_invalid_length():
 
 def test_get_rows_empty_table():
     table = Table(["position", "performance"])
-    assert table.get_rows() == [["position", "performance"]]
+    assert table.headers == ["position", "performance"]
 
 
 def test_replace_table():
@@ -62,3 +62,20 @@ def test_replace_table():
         ["Alice", 5.0],
         ["Bob", 4.5],
     ]
+
+def test_get_item():
+    table = Table(["position", "performance"])
+    table.add_row(["Backend Developer", 4.8])
+    table.add_row(["QA Engineer", 4.5])
+
+    assert table[0] == ["Backend Developer", 4.8]
+    assert table["position"] == ["Backend Developer", "QA Engineer"]
+
+    with pytest.raises(IndexError):
+        _ = table[4]
+
+    with pytest.raises(ValueError):
+        _ = table["no column"]
+
+    with pytest.raises(TypeError):
+        _ = table[None]
