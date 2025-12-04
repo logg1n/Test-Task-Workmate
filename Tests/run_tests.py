@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # Инициализируем coverage
     cov = coverage.Coverage(
         source=["."]
-    )  # можно указать конкретные пакеты: ["Reports", "table", "script"]
+    )
     cov.start()
 
     # Запускаем pytest на каталог Tests
