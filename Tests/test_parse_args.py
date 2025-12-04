@@ -38,6 +38,23 @@ def test_missing_files(monkeypatch):
     with pytest.raises(SystemExit):
         get_args_command_line()
 
+def test_missing_report(monkeypatch):
+    """Если не указаны --reports → SystemExit"""
+    monkeypatch.setattr(sys, "argv", ["run.py", "--files", "file.csv"])
+    with pytest.raises(SystemExit):
+        get_args_command_line()
+
+def test_empty_files(monkeypatch):
+    """Если указан --files, но без значений → SystemExit"""
+    monkeypatch.setattr(sys, "argv", ["run.py", "--files", "--reports", "performance"])
+    with pytest.raises(SystemExit):
+        get_args_command_line()
+
+def test_empty_reports(monkeypatch):
+    """Если указан --reports, но без значений → SystemExit"""
+    monkeypatch.setattr(sys, "argv", ["run.py", "--files", "file.csv", "--reports"])
+    with pytest.raises(SystemExit):
+        get_args_command_line()
 
 def test_unknown_argument(monkeypatch):
     """Неизвестный аргумент → SystemExit"""
