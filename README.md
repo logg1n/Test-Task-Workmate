@@ -89,7 +89,7 @@ D:\github\Analysis of developer performance
 ### 3. Напишите класс отчёта
 1. Создайте новый файл в пакете Reports/.
 2. Имя файла = значение поля name.
-3. Оберните класс в декоратор @Reports.register_report.
+3. Оберните класс в декоратор @Reports.register_report <- from report import Reports
 4. Укажите:
    - name — уникальное имя отчёта,
    - columns — список колонок, которые нужны отчёту,
