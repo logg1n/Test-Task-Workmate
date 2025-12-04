@@ -98,31 +98,44 @@ D:\github\Analysis of developer performance
 
 Пример (Reports/skills.py):
 ```python
-from report import Reports
 from collections import Counter
+from typing import Any
+from report import Reports
+from table import Table
+
 
 @Reports.register_report
 class CountBySkills:
-    name = "skills"
-    columns = ["skills"]
+    """
+    Отчёт по навыкам сотрудников.
+
+    Считает количество сотрудников по каждому уникальному навыку,
+    найденному в колонке "skills".
+    """
+
+    name: str = "skills"
+    columns: list[str] = ["skills"]
 
     @staticmethod
-    def count_by_skill(table, column_name: str = "skills"):
-        headers = table.get_rows()[0]
-        idx = headers.index(column_name)
+    def count_by_skill(table: Table, column_name: str = "skills") -> Table:
+        """Посчитать количество сотрудников по каждому навыку."""
 
-        all_skills = []
-        for row in table.get_rows()[1:]:
-            skills = row[idx]
-            if isinstance(skills, str):
-                for s in skills.split(","):
-                    s = s.strip()
-                    if s:
-                        all_skills.append(s)
+        # собираем все навыки в один список
+        all_skills: list[str] = [
+            s.strip()
+            for skills in table["skills"] if isinstance(skills, str)
+            for s in skills.split(",")
+            if s.strip()
+        ]
 
-        skill_counts = Counter(all_skills)
-        new_rows = [[skill, count] for skill, count in skill_counts.items()]
-        table.replace(["skill", "count"], new_rows)
+        # считаем количество уникальных навыков
+        skill_counts: Counter[str] = Counter(all_skills)
+
+        # формируем новые строки
+        new_rows: list[list[Any]] = [
+            [skill, count] for skill, count in skill_counts.items()
+        ]
+        table.replace([column_name], new_rows)
 
         return table
 
